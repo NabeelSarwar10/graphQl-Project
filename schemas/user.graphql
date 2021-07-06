@@ -1,0 +1,35 @@
+type Result {
+  success: Boolean
+  message: String
+}
+
+type AuthPayload {
+  success: Boolean
+  message: String
+  token: String
+  user: String
+}
+
+type User {
+  _id: ID
+  name: String
+  email: String
+}
+
+input UserInput {
+  _id: ID
+  name: String
+  email: String
+  password: String
+}
+
+type Query {
+  getUserByEmail(email: String): User
+  getAllUsers: [User]!
+}
+
+type Mutation {
+  createUser(user: UserInput): AuthPayload!
+  updateUser(name: String, email: String!): Boolean!
+  login(email: String!, password: String!): AuthPayload!
+}
