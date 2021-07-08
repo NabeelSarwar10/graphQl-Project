@@ -1,8 +1,3 @@
-type Result {
-  success: Boolean
-  message: String
-}
-
 type AuthPayload {
   success: Boolean
   message: String
@@ -14,10 +9,11 @@ type User {
   _id: ID
   name: String
   email: String
+  updatedAt: Date
+  createdAt: Date
 }
 
 input UserInput {
-  _id: ID
   name: String
   email: String
   password: String
@@ -26,6 +22,7 @@ input UserInput {
 type Query {
   getUserByEmail(email: String): User
   getAllUsers: [User]!
+  getCurrentUser: User
 }
 
 type Mutation {

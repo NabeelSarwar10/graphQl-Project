@@ -1,0 +1,24 @@
+type Post {
+  _id: ID
+  createdBy: User
+  name: String
+  createdAt: Date
+  updatedAt: Date
+}
+input PostInput {
+  createdBy: ID
+  name: String
+  createdAt: Date
+  updatedAt: Date
+}
+
+type Query {
+  getPostById(_id: ID): Post
+  getAllPosts: [Post]!
+  getCurrentUserPost: [Post]!
+}
+
+type Mutation {
+  createPost(post: PostInput): Result
+  updatePost(name: String, email: String!): Boolean!
+}

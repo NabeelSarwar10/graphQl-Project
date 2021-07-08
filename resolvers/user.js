@@ -1,21 +1,31 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import { AuthenticationError } from "apollo-server";
 
 export default (db) => {
   const User = db.collection("user");
+
   return {
     Query: {
       getUserByEmail: async (_, { email }, context) => {
+        console.log(context);
         return await User.findOne({ email });
       },
       getAllUsers: async () => {
-        const users = await User.find({});
-        const userMap = [];
-        await users.map((user) => {
-          console.log(user);
-          userMap.push(user);
-        });
-        return userMap;
+        const userArray = [];
+        await User.find()
+          .toArray()
+          .then((users) => {
+            users.map((user) => {
+              userArray.push(user);
+            });
+          });
+
+        return userArray;
+      },
+      getCurrentUser: async (_, {}, { user }) => {
+        const email = user.email;
+        return await User.findOne({ email });
       },
     },
     Mutation: {
@@ -26,16 +36,18 @@ export default (db) => {
           var password = bcrypt.hashSync(user.password, salt);
           const doc = await User.findOne({ email });
           if (doc) throw new Error("User already exist");
-          await User.insertOne(user);
+          await User.insertOne({ ...user, createdAt: new Date() });
           const userDoc = await User.updateOne(
             { email: email },
             {
               $set: { password: password },
             }
           );
+
           const token = jwt.sign(
-            { userId: userDoc._id },
-            process.env.JWT_SECRET
+            { id: userDoc._id, email: userDoc.email },
+            process.env.JWT_SECRET,
+            { algorithm: "HS256", expiresIn: "1d" }
           );
           return {
             success: true,
@@ -47,7 +59,10 @@ export default (db) => {
           return { success: false, message: error.message };
         }
       },
-      updateUser: async (_, { name, email }) => {
+      updateUser: async (_, { name, email }, { user }) => {
+        console.log(user);
+        if (!user || user.email !== email)
+          throw new AuthenticationError("Please autheticate");
         await User.updateOne(
           { email: email },
           {
@@ -66,7 +81,14 @@ export default (db) => {
           if (!valid) {
             throw new Error("Invalid password");
           }
-          const token = jwt.sign({ userId: doc._id }, process.env.JWT_SECRET);
+          const token = jwt.sign(
+            { id: doc._id, email: doc.email },
+            process.env.JWT_SECRET,
+            {
+              algorithm: "HS256",
+              expiresIn: "1d",
+            }
+          );
           return {
             success: true,
             message: "User Logged in Successfully",

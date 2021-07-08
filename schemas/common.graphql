@@ -1,0 +1,6 @@
+scalar Date
+
+type Result {
+  success: Boolean
+  message: String
+}
